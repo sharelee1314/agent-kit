@@ -1,0 +1,11 @@
+{
+  "name": "weather-mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "weather-mcp-server": "./weather-mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0"
+  }
+}
