@@ -1,33 +1,40 @@
-import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 
 import { logout } from '$lib/stores/auth';
+
+// 重写全局 fetch 处理401
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+	const response = await originalFetch(...args);
+
+	if (response.status === 401) {
+		// 触发登出
+		logout()
+	}
+
+	return response;
+};
 
 class ApiClient {
 	private baseURL = '';
 
 	async request(url: string, options: RequestInit = {}) {
 		const token = browser ? localStorage.getItem('token') : null;
-		
+
 		const config: RequestInit = {
 			...options,
 			headers: {
 				'Content-Type': 'application/json',
-				...(token && { 'Authorization': `Bearer ${token}` }),
+				...(token && { Authorization: `Bearer ${token}` }),
 				...options.headers
 			}
 		};
 
 		const response = await fetch(this.baseURL + url, config);
 
-		if (response.status === 401) {
-			logout();
-			throw new Error('Unauthorized');
-		}
+		const resData = await response.json();
 
-		const resData = await response.json()
-
-		 if (resData.code === 200) {
+		if (resData.code === 200) {
 			return resData.data;
 		} else {
 			throw new Error(resData.msg);

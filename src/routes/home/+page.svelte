@@ -1,84 +1,90 @@
 <script lang="ts">
-	import { createEventSource } from 'eventsource-client';
+	import { createEventSource, type EventSourceClient } from 'eventsource-client';
 	import { onMount } from 'svelte';
-	
-	let messages: Array<{role: 'user' | 'assistant', content: string, timestamp: Date}> = [];
+
+	let messages: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }> = [];
 	let inputMessage = '';
 	let isLoading = false;
 	let chatContainer: HTMLElement;
 
 	function handleMessage(message: string) {
-		isLoading = false
-		let oldMessages = messages[messages.length - 1]
+		isLoading = false;
+		let oldMessages = messages[messages.length - 1];
 		if (oldMessages.role === 'assistant') {
-			oldMessages.content += message
+			oldMessages.content += message;
 		}
 
-		messages = [...messages.slice(0, -1), {
-			role: 'assistant',
-			content: oldMessages.content,
-			timestamp: new Date()
-		}];
+		messages = [
+			...messages.slice(0, -1),
+			{
+				role: 'assistant',
+				content: oldMessages.content,
+				timestamp: new Date()
+			}
+		];
 
 		scrollToBottom();
 	}
 
 	// 调用真实的AI API
-	async function callAIAPI(userMessage: string, handleMessage: (message: string) => void){
+	async function callAIAPI(userMessage: string, handleMessage: (message: string) => void) {
 		const SSEClient = createEventSource({
 			url: '/api/chat/assistant',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage.getItem('token')}`
+				Authorization: `Bearer ${localStorage.getItem('token')}`
 			},
 			method: 'POST',
 			onMessage: (event) => {
-				console.log('event', event)
+				console.log('event', event);
 			},
 			body: JSON.stringify({ message: userMessage })
 		});
 
-		console.log('SSEClient', SSEClient.readyState)
-
 		for await (const chunk of SSEClient) {
-			const {data} = chunk
+			const { data } = chunk;
 			if (data === '[DONE]') {
-				SSEClient.close()
-				return
+				SSEClient.close();
+				return;
 			}
 			try {
-				const parseData= JSON.parse(data)
-				handleMessage(parseData.data)
+				const parseData = JSON.parse(data);
+				handleMessage(parseData.data);
 			} catch (error) {
-				handleMessage(data)
-				console.error(error)
+				handleMessage(data);
+				console.error(error);
 			}
 		}
 	}
 
 	async function sendMessage() {
 		if (!inputMessage.trim() || isLoading) return;
-		
+
 		const userMsg = inputMessage.trim();
 		inputMessage = '';
-		
+
 		// 添加用户消息
-		messages = [...messages, {
-			role: 'user',
-			content: userMsg,
-			timestamp: new Date()
-		}];
-		
+		messages = [
+			...messages,
+			{
+				role: 'user',
+				content: userMsg,
+				timestamp: new Date()
+			}
+		];
+
 		isLoading = true;
 
-		messages = [...messages, {
-			role: 'assistant',
-			content: '',
-			timestamp: new Date()
-		}];
+		messages = [
+			...messages,
+			{
+				role: 'assistant',
+				content: '',
+				timestamp: new Date()
+			}
+		];
 
 		callAIAPI(userMsg, handleMessage);
-		
 	}
 
 	function scrollToBottom() {
@@ -102,11 +108,13 @@
 
 	onMount(() => {
 		// 欢迎消息
-		messages = [{
-			role: 'assistant',
-			content: '你好！我是你的AI助手。有什么我可以帮助你的吗？',
-			timestamp: new Date()
-		}];
+		messages = [
+			{
+				role: 'assistant',
+				content: '你好！我是你的AI助手。有什么我可以帮助你的吗？',
+				timestamp: new Date()
+			}
+		];
 	});
 </script>
 
@@ -119,8 +127,17 @@
 				<span>AI Assistant</span>
 			</div>
 			<button class="clear-btn" on:click={clearChat}>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+					/>
 				</svg>
 				清空
 			</button>
@@ -131,29 +148,41 @@
 	<div class="chat-messages" bind:this={chatContainer}>
 		{#each messages as message}
 			{#if !!message.content}
-			<div class="message {message.role}">
-				<div class="message-avatar">
-					{#if message.role === 'user'}
-						<div class="user-avatar">U</div>
-					{:else}
-						<div class="ai-avatar">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<circle cx="12" cy="12" r="3"/>
-								<path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
-							</svg>
+				<div class="message {message.role}">
+					<div class="message-avatar">
+						{#if message.role === 'user'}
+							<div class="user-avatar">U</div>
+						{:else}
+							<div class="ai-avatar">
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<circle cx="12" cy="12" r="3" />
+									<path
+										d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"
+									/>
+								</svg>
+							</div>
+						{/if}
+					</div>
+					<div class="message-content">
+						<div class="message-text">{message.content}</div>
+						<div class="message-time">
+							{message.timestamp.toLocaleTimeString('zh-CN', {
+								hour: '2-digit',
+								minute: '2-digit'
+							})}
 						</div>
-					{/if}
-				</div>
-				<div class="message-content">
-					<div class="message-text">{message.content}</div>
-					<div class="message-time">
-						{message.timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
 					</div>
 				</div>
-			</div>
 			{/if}
 		{/each}
-		
+
 		{#if isLoading}
 			<div class="message assistant">
 				<div class="message-avatar">
@@ -182,15 +211,22 @@
 				rows="1"
 				disabled={isLoading}
 			></textarea>
-			<button 
-				class="send-btn" 
+			<button
+				class="send-btn"
 				on:click={sendMessage}
 				disabled={!inputMessage.trim() || isLoading}
-        aria-label="Send message"
+				aria-label="Send message"
 			>
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<line x1="22" y1="2" x2="11" y2="13"/>
-					<polygon points="22,2 15,22 11,13 2,9"/>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<line x1="22" y1="2" x2="11" y2="13" />
+					<polygon points="22,2 15,22 11,13 2,9" />
 				</svg>
 			</button>
 		</div>
@@ -204,7 +240,11 @@
 		flex-direction: column;
 		background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 		color: #e0e6ed;
-		font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+		font-family:
+			'SF Pro Display',
+			-apple-system,
+			BlinkMacSystemFont,
+			sans-serif;
 	}
 
 	.chat-header {
@@ -242,8 +282,15 @@
 	}
 
 	@keyframes pulse {
-		0%, 100% { opacity: 1; transform: scale(1); }
-		50% { opacity: 0.5; transform: scale(1.2); }
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.5;
+			transform: scale(1.2);
+		}
 	}
 
 	.clear-btn {
@@ -301,7 +348,8 @@
 		flex-shrink: 0;
 	}
 
-	.user-avatar, .ai-avatar {
+	.user-avatar,
+	.ai-avatar {
 		width: 40px;
 		height: 40px;
 		border-radius: 50%;
@@ -340,12 +388,22 @@
 		animation: loadingDots 1.4s infinite ease-in-out both;
 	}
 
-	.loading-dots div:nth-child(1) { animation-delay: -0.32s; }
-	.loading-dots div:nth-child(2) { animation-delay: -0.16s; }
+	.loading-dots div:nth-child(1) {
+		animation-delay: -0.32s;
+	}
+	.loading-dots div:nth-child(2) {
+		animation-delay: -0.16s;
+	}
 
 	@keyframes loadingDots {
-		0%, 80%, 100% { transform: scale(0); }
-		40% { transform: scale(1); }
+		0%,
+		80%,
+		100% {
+			transform: scale(0);
+		}
+		40% {
+			transform: scale(1);
+		}
 	}
 
 	.message-content {
@@ -484,28 +542,30 @@
 
 	/* 响应式设计 */
 	@media (max-width: 768px) {
-		.chat-header, .chat-input {
+		.chat-header,
+		.chat-input {
 			padding: 1rem;
 		}
-		
+
 		.chat-messages {
 			padding: 1rem 0.5rem;
 		}
-		
+
 		.message {
 			gap: 0.75rem;
 		}
-		
-		.user-avatar, .ai-avatar {
+
+		.user-avatar,
+		.ai-avatar {
 			width: 32px;
 			height: 32px;
 			font-size: 0.8rem;
 		}
-		
+
 		.message-content {
 			max-width: calc(100% - 50px);
 		}
-		
+
 		.message-text {
 			padding: 0.75rem 1rem;
 			font-size: 0.95rem;
