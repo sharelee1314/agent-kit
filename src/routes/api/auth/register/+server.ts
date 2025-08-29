@@ -1,5 +1,5 @@
 import {prisma} from '$lib/server/db'
-import {ResponseJson} from '../../types'
+import {json} from '@sveltejs/kit'
 import {userSchema} from '$lib/server/schema'
 import type {RequestEvent} from '@sveltejs/kit'
 
@@ -10,7 +10,7 @@ export const POST = async ({request}: RequestEvent) => {
   const parsed = userSchema.safeParse(data)
 
   if (!parsed.success) {
-    return ResponseJson(null, 400, parsed.error.message)
+    return json({code: 400, msg: parsed.error.message, data: null}, {status: 200})
   }
 
   try {
@@ -18,9 +18,9 @@ export const POST = async ({request}: RequestEvent) => {
     const user = await prisma.user.create({
       data: {userName, password: await hashPassword(password)}
     })
-    return ResponseJson(user, 200, '注册成功')
+    return json({code: 200, msg: '注册成功', data: user}, {status: 200})
   } catch (error) {
-    return ResponseJson(null, 500, '注册失败')
+    return json({code: 500, msg: '注册失败', data: null}, {status: 200})
   }
 
  

@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import {SignJWT, jwtVerify} from 'jose'
+import { JWT_SECRET } from '$env/static/private';
 
 export interface JWTPayload {
   password: string
@@ -7,8 +8,6 @@ export interface JWTPayload {
   [key: string]: any
 }
 
-
-export const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
 const secret = new TextEncoder().encode(JWT_SECRET)
 
@@ -29,7 +28,6 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
     const {payload} = await jwtVerify(token, secret)
     return payload as JWTPayload
   } catch (error) {
-    console.error('Token verification failed:', error)
     return null
   }
 }

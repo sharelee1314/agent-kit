@@ -1,19 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { isAuthenticated } from '$lib/stores/auth';
 
-	onMount(() => {
-		const unsubscribe = isAuthenticated.subscribe((authenticated) => {
-			if (authenticated) {
-				goto('/home');
-			} else {
-				goto('/login');
-			}
-		});
-
-		return unsubscribe;
-	});
 </script>
 
 <div class="flex justify-center items-center min-h-screen">

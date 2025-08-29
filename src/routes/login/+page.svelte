@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { login } from '$lib/stores/auth';
+  import { api } from '$lib/api';
   
   let userName = '';
   let password = '';
@@ -17,29 +17,21 @@
     error = '';
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const result = await api.post('/api/auth/login', {
+          userName,
+          password
+        }, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          userName,
-          password
-        })
+      
       });
-
-      const result = await response.json();
-
-      if (result.code === 200) {
-        // 登录成功，保存token和用户信息
-        login(result.data.token, { userName });
-        goto('/home');
-      } else {
-        error = result.msg || '登录失败';
-      }
+     // 登录成功，保存token和用户信息
+      localStorage.setItem('token', result.token);
+      goto('/home');
     } catch (err) {
-      console.error('登录错误:', err);
-      error = '网络错误，请重试';
+      error = err as string
     } finally {
       loading = false;
     }

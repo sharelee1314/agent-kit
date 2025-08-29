@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventSource, type EventSourceClient } from 'eventsource-client';
+	import { createEventSource } from 'eventsource-client';
 	import { onMount } from 'svelte';
 	
 	let messages: Array<{role: 'user' | 'assistant', content: string, timestamp: Date}> = [];
@@ -32,8 +32,13 @@
 				'Authorization': `Bearer ${localStorage.getItem('token')}`
 			},
 			method: 'POST',
+			onMessage: (event) => {
+				console.log('event', event)
+			},
 			body: JSON.stringify({ message: userMessage })
 		});
+
+		console.log('SSEClient', SSEClient.readyState)
 
 		for await (const chunk of SSEClient) {
 			const {data} = chunk
@@ -49,7 +54,6 @@
 				console.error(error)
 			}
 		}
-
 	}
 
 	async function sendMessage() {
