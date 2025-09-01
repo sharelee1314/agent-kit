@@ -1,7 +1,7 @@
 import type { RequestHandler } from '../$types';
 import { streamAgentResponse } from '$lib/server/agent';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const { message } = await request.json();
 		

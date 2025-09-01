@@ -3,8 +3,8 @@ import {SignJWT, jwtVerify} from 'jose'
 import { JWT_SECRET } from '$env/static/private';
 
 export interface JWTPayload {
-  password: string
   userName: string
+  userId: string
   [key: string]: any
 }
 

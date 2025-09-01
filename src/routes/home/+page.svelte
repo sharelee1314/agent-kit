@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { createEventSource, type EventSourceClient } from 'eventsource-client';
+	import { createEventSource } from 'eventsource-client';
 	import { onMount } from 'svelte';
+	import dayjs from 'dayjs';
+	import {Save} from 'lucide-svelte'
+	import {api} from '$lib/api';
 
 	let messages: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }> = [];
 	let inputMessage = '';
@@ -106,15 +109,28 @@
 		messages = [];
 	}
 
-	onMount(() => {
+	async function getChatHistory(): Promise<Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>> {
+		const chatHistory = await api.get('/api/chat/history');
+		return chatHistory?.content || [];
+	}
+
+	async function saveChat() {
+		await api.post('/api/chat/save', {
+			content: messages
+		});
+	}
+
+	onMount(async () => {
+		let chatHistory = await getChatHistory();
 		// 欢迎消息
-		messages = [
+		messages = chatHistory || [
 			{
 				role: 'assistant',
 				content: '你好！我是你的AI助手。有什么我可以帮助你的吗？',
 				timestamp: new Date()
 			}
 		];
+		console.log(messages,'messages');
 	});
 </script>
 
@@ -126,6 +142,10 @@
 				<div class="pulse-dot"></div>
 				<span>AI Assistant</span>
 			</div>
+			<button class="clear-btn" on:click={saveChat}>
+				<Save size={16}></Save>
+				保存
+			</button>
 			<button class="clear-btn" on:click={clearChat}>
 				<svg
 					width="16"
@@ -173,10 +193,7 @@
 					<div class="message-content">
 						<div class="message-text">{message.content}</div>
 						<div class="message-time">
-							{message.timestamp.toLocaleTimeString('zh-CN', {
-								hour: '2-digit',
-								minute: '2-digit'
-							})}
+							{dayjs(message.timestamp).format('YYYY-MM-DD HH:mm:ss')}
 						</div>
 					</div>
 				</div>

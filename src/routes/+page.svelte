@@ -1,5 +1,14 @@
 <script lang="ts">
+	import {goto} from '$app/navigation';
+	import {onMount} from 'svelte';
 
+	onMount(() => {
+		if (localStorage.getItem('token')) {
+			goto('/home');
+		} else {
+			goto('/login');
+		}
+	});
 </script>
 
 <div class="flex justify-center items-center min-h-screen">

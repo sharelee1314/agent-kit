@@ -23,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 	const isApiRequest = pathname.startsWith('/api');
 	if (isApiRequest) {
-		const notProtectedRoutes = ['/api/auth/login', '/api/auth/register']
+		const notProtectedRoutes = ['/api/auth/login', '/api/auth/register', '/api/docs']
 		if (!notProtectedRoutes.includes(event.url.pathname)) {
 			if (!event.locals.user) {
 				return json({ code: 401, msg: 'Unauthorized', data: null }, { status: 401 });

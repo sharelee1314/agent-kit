@@ -1,20 +1,5 @@
 import { browser } from '$app/environment';
 
-import { logout } from '$lib/stores/auth';
-
-// 重写全局 fetch 处理401
-const originalFetch = window.fetch;
-window.fetch = async function (...args) {
-	const response = await originalFetch(...args);
-
-	if (response.status === 401) {
-		// 触发登出
-		logout()
-	}
-
-	return response;
-};
-
 class ApiClient {
 	private baseURL = '';
 

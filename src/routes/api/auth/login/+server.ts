@@ -16,7 +16,7 @@ export const POST = async ({ request }: RequestEvent) => {
 	const { userName, password } = parsed.data;
 	const user = await prisma.user.findUnique({
 		where: { userName },
-		select: { userName: true, password: true }
+		select: { userName: true, id: true, password: true }
 	});
 
 	if (!user) {
@@ -28,7 +28,7 @@ export const POST = async ({ request }: RequestEvent) => {
 	if (!isPasswordValid) {
 		return json({ code: 400, msg: '密码错误' }, { status: 200 });
 	}
-	const token = await createToken({ userName, password });
+	const token = await createToken({ userName, userId: user.id.toString() });
 
 	return json(
 		{
